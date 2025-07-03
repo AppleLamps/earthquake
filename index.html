@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apple Lamps Earthquake Monitor</title>
+    <meta name="description" content="Apple Lamps Earthquake Monitor - Real-time earthquake monitoring with live USGS data, advanced filtering, and browser notifications">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e74c3c'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z'/></svg>">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="title">
+                <svg class="title-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z"/>
+                </svg>
+                Apple Lamps Earthquake Monitor
+            </h1>
+            <div class="controls">
+                <button id="notification-toggle" class="notification-btn" title="Enable notifications for magnitude 4.5+ earthquakes">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                    </svg>
+                    Enable Notifications
+                </button>
+                <button id="map-toggle" class="map-toggle-btn" title="Toggle map view">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
+                    </svg>
+                    Map
+                </button>
+                <button id="refresh-btn" class="refresh-btn" title="Refresh earthquake data">
+                    <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 8 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                    </svg>
+                    Refresh
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="status-bar">
+                <div class="status-item">
+                    <svg class="status-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    <span id="status-text">Loading...</span>
+                </div>
+                <div class="status-item">
+                    <svg class="status-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zM12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+                    </svg>
+                    <span id="last-updated">Never</span>
+                </div>
+            </div>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="magnitude-filter">Minimum Magnitude:</label>
+                    <select id="magnitude-filter">
+                        <option value="0">All</option>
+                        <option value="1">1.0+</option>
+                        <option value="2">2.0+</option>
+                        <option value="3">3.0+</option>
+                        <option value="4">4.0+</option>
+                        <option value="4.5">4.5+</option>
+                        <option value="5">5.0+</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="time-filter">Time Range:</label>
+                    <select id="time-filter">
+                        <option value="hour">Last Hour</option>
+                        <option value="day">Last 24 Hours</option>
+                        <option value="week">Last Week</option>
+                        <option value="month">Last Month</option>
+                        <option value="all">All Time</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="depth-filter">Depth Range:</label>
+                    <select id="depth-filter">
+                        <option value="all">All Depths</option>
+                        <option value="shallow">Shallow (0-70km)</option>
+                        <option value="intermediate">Intermediate (70-300km)</option>
+                        <option value="deep">Deep (300km+)</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="location-search">Location Search:</label>
+                    <input type="text" id="location-search" placeholder="Search by location..." />
+                </div>
+                
+                <div class="filter-group">
+                    <label for="sort-filter">Sort by:</label>
+                    <select id="sort-filter">
+                        <option value="time-desc">Newest First</option>
+                        <option value="time-asc">Oldest First</option>
+                        <option value="magnitude-desc">Highest Magnitude</option>
+                        <option value="magnitude-asc">Lowest Magnitude</option>
+                        <option value="depth-asc">Shallowest First</option>
+                        <option value="depth-desc">Deepest First</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="content-container">
+                <div id="earthquake-map" class="earthquake-map">
+                    <div class="map-container">
+                        <div id="map"></div>
+                    </div>
+                </div>
+
+                <div id="earthquake-list" class="earthquake-list">
+                    <div class="loading-spinner">
+                        <svg class="spinner" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="31.416" stroke-dashoffset="31.416">
+                                <animate attributeName="stroke-dasharray" dur="2s" values="0 31.416;15.708 15.708;0 31.416" repeatCount="indefinite"/>
+                                <animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416" repeatCount="indefinite"/>
+                            </circle>
+                        </svg>
+                        <span>Loading earthquake data...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Data provided by <a href="https://earthquake.usgs.gov/" target="_blank" rel="noopener">USGS Earthquake Hazards Program</a></p>
+            <p>Updates every 5 minutes • Notifications for magnitude 4.5+ earthquakes</p>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="script.js"></script>
+</body>
+</html> 

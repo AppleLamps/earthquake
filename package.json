@@ -1,0 +1,29 @@
+{
+  "name": "earthquake-web",
+  "version": "1.0.0",
+  "description": "A fully serverless real-time earthquake monitoring website",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve . --listen 3000",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "earthquake",
+    "monitoring",
+    "usgs",
+    "notifications",
+    "serverless",
+    "vercel"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "homepage": "https://github.com/yourusername/earthquake-web",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/earthquake-web.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+} 
