@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "pages/api/health.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "headers": [
     {
       "source": "/(.*)",
