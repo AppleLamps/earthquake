@@ -123,7 +123,12 @@ class EarthquakeMonitor {
             center: [20, 0],
             zoom: 2,
             minZoom: 1,
-            maxZoom: 18
+            maxZoom: 18,
+            worldCopyJump: false, // Prevents jumping to the other side
+            maxBounds: [         // Restricts panning to world bounds
+                [-85, -180],
+                [85, 180]
+            ]
         });
 
         // Add OpenStreetMap tiles
